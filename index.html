@@ -13,7 +13,6 @@
 		if (window.location != window.parent.location) window.parent.location = window.location;
 		// recieve migrated localStorage
 		(function () {
-			debugger
 			var storageJson = location.href.split('#storage=')[1]
 			if (storageJson && localStorage.getItem('migrated') !== '2') {
 				try {

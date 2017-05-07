@@ -95,11 +95,13 @@ if (location.search === '?local=true') {
 		}
 	}
 	var url = location.protocol + '//' + host
+	var clientId = localStorage.getItem('clientId') || '';
 	socket = io(url,{
 		reconnection: false,
 		reconnectionDelay: 3000,
 		reconnectionDelayMax: 30000,
-		reconnectionAttempts: 10
+		reconnectionAttempts: 10,
+		query: 'clientId='+clientId
 	});
 }
 if (location.search === '?debug') {
@@ -219,6 +221,7 @@ socket.on('error',function (err) {
 });
 
 socket.on('disconnect',function (data) {
+	localStorage.setItem('clientId','');
 	console.log('disconnect');
 	if (!socket.io.reconnection()) {
 		game = null;
@@ -230,12 +233,13 @@ socket.on('disconnect',function (data) {
 });
 
 socket.on('reconnect_failed',function (number) {
+	localStorage.setItem('clientId','');
 	msgBox.alert('RECONNECT_FAILED',reload);
 });
 
 socket.on('reconnect_attempt',function () {
 	console.log('reconnect_attempt');
-	socket.io.opts.query = 'clientId='+clientId;
+	socket.io.opts.query = 'reconnect=1&clientId='+clientId;
 });
 
 socket.on('reconnect',function (number) {
@@ -248,7 +252,37 @@ socket.on('error message',function (data) {
 
 socket.on('client id',function (id) {
 	clientId = id;
-	console.log('clientId = %s',id);
+	console.log('clientId = %s',clientId);
+});
+
+socket.on('reconnectContent',function (messagePacks) {
+	// 检查messagepack
+	var end = messagePacks.length - 1;
+	gameStart();
+	game.skip = true;
+	messagePacks.forEach(function (pack,i) {
+		if (i === end) {
+			return;
+		}
+		game.io.receiveGameMessage({
+			buffer: [{
+				id: i,
+				data: pack
+			}]
+		});
+	});
+	game.handleMsgQueue();
+	game.skip = false;
+
+	// 进行掉线前的最后一步动画
+	game.io.receiveGameMessage({
+		buffer: [{
+			id: end,
+			data: messagePacks[end]
+		}]
+	})
+	game.handleMsgQueue()
+	socket.emit('updateSocket');
 });
 
 socket.on('game reconnect',function () {
@@ -258,6 +292,7 @@ socket.on('game reconnect',function () {
 });
 
 socket.on('game reconnect failed',function () {
+	localStorage.setItem('clientId','');
 	console.log('game reconnect failed');
 	msgBox.alert(Localize.index('DROPPED'),initHall);
 });
@@ -298,6 +333,7 @@ function checkVersion () {
 }
 
 socket.on('game start',function (data) {
+	localStorage.setItem('clientId', clientId);
 	gameStart();
 });
 
@@ -338,6 +374,7 @@ function gameStart (tag) {
 
 function ongameover (win,surrender,messagePacks) {
 	socket.io.reconnection(false);
+	localStorage.setItem('clientId','');
 	askForSupport(win);
 	var title = win? 'WIN' : 'LOSE';
 	var body = newElement('div');
@@ -933,7 +970,7 @@ socket.on('chat',function (msgObj) {
 	var guests = ['guest','guest-spectator'];
 	var specs = ['host-spectator','guest-spectator'];
 	var isOpponent = (inArr(position,hosts) && inArr(msgObj.position,guests)) ||
-	                 (inArr(position,guests) && inArr(msgObj.position,hosts));
+					 (inArr(position,guests) && inArr(msgObj.position,hosts));
 	var isSpectator = inArr(msgObj.position,specs);
 	chatManager.addMsg(msgObj.nickname,msgObj.content,isOpponent,isSpectator);
 });
