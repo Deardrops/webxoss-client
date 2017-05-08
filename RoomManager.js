@@ -220,8 +220,12 @@ socket.on('error',function (err) {
 	msgBox.alert(Localize.index('NET_WORK_ERROR'),reload);
 });
 
-socket.on('disconnect',function (data) {
+function clearClientId() {
 	localStorage.setItem('clientId','');
+}
+
+socket.on('disconnect',function (data) {
+	// clearClientId();
 	console.log('disconnect');
 	if (!socket.io.reconnection()) {
 		game = null;
@@ -233,7 +237,7 @@ socket.on('disconnect',function (data) {
 });
 
 socket.on('reconnect_failed',function (number) {
-	localStorage.setItem('clientId','');
+	clearClientId();
 	msgBox.alert('RECONNECT_FAILED',reload);
 });
 
@@ -292,7 +296,7 @@ socket.on('game reconnect',function () {
 });
 
 socket.on('game reconnect failed',function () {
-	localStorage.setItem('clientId','');
+	clearClientId();
 	console.log('game reconnect failed');
 	msgBox.alert(Localize.index('DROPPED'),initHall);
 });
@@ -374,7 +378,7 @@ function gameStart (tag) {
 
 function ongameover (win,surrender,messagePacks) {
 	socket.io.reconnection(false);
-	localStorage.setItem('clientId','');
+	clearClientId();
 	askForSupport(win);
 	var title = win? 'WIN' : 'LOSE';
 	var body = newElement('div');
