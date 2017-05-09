@@ -298,7 +298,7 @@ socket.on('game reconnect',function () {
 socket.on('game reconnect failed',function () {
 	clearClientId();
 	console.log('game reconnect failed');
-	msgBox.alert(Localize.index('DROPPED'),initHall);
+	msgBox.alert(Localize.index('DROPPED'),reload);
 });
 
 socket.on('wait for reconnect',function () {
@@ -752,6 +752,7 @@ socket.on('wrong password',function () {
 });
 
 socket.on('host disconnected',function () {
+	clearClientId();
 	if (game) {
 		var msg = Localize.index('OPPONENT_DISCONNECTED');
 		if (position === 'host-spectator') {
@@ -764,6 +765,7 @@ socket.on('host disconnected',function () {
 });
 
 socket.on('guest disconnected',function () {
+	clearClientId();
 	var msg = Localize.index('OPPONENT_DISCONNECTED');
 	if (position === 'guest-spectator') {
 		msg = Localize.index('SELF_DISCONNECTED');
