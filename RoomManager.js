@@ -96,6 +96,11 @@ if (location.search === '?local=true') {
 	}
 	var url = location.protocol + '//' + host
 	var clientId = localStorage.getItem('clientId') || '';
+	if (clientId) {
+		msgBox.alert(Localize.index('FETCHING_DATA'),function () {
+			reload();
+		});
+	}
 	socket = io(url,{
 		reconnection: false,
 		reconnectionDelay: 3000,
@@ -259,8 +264,17 @@ socket.on('client id',function (id) {
 	console.log('clientId = %s',clientId);
 });
 
-socket.on('reconnectContent',function (messagePacks) {
-	// 检查messagepack
+socket.on('reconnectContent',function (data) {
+	if (!data) {
+		msgBox.alert(Localize.index('FAILED_TO_FETCH_DATA'));
+		clearClientId();
+		reload();
+		return;
+	}
+	msgBox.close();
+
+	position = data.position;
+	var messagePacks = data.messagePacks;
 	var end = messagePacks.length - 1;
 	gameStart();
 	game.skip = true;
@@ -285,7 +299,7 @@ socket.on('reconnectContent',function (messagePacks) {
 			data: messagePacks[end]
 		}]
 	})
-	game.handleMsgQueue()
+	game.handleMsgQueue();
 	socket.emit('updateSocket');
 });
 
@@ -296,6 +310,7 @@ socket.on('game reconnect',function () {
 });
 
 socket.on('game reconnect failed',function () {
+	// 掉线重连失败时，清理ClientId并刷新浏览器
 	clearClientId();
 	console.log('game reconnect failed');
 	msgBox.alert(Localize.index('DROPPED'),reload);
@@ -972,6 +987,7 @@ socket.on('replayContent',function (content) {
 
 /* 聊天 */
 socket.on('chat',function (msgObj) {
+	console.warn(msgObj);
 	var hosts = ['host','host-spectator'];
 	var guests = ['guest','guest-spectator'];
 	var specs = ['host-spectator','guest-spectator'];
