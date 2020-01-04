@@ -123,10 +123,10 @@ function getProxy () {
 	}
 	return localStorage.getItem('proxy') || '';
 }
-$('span-set-proxy').onclick = function () {
-	$('select-proxy').value = getProxy();
-	msgBox.preset('proxy');
-};
+// $('span-set-proxy').onclick = function () {
+// 	$('select-proxy').value = getProxy();
+// 	msgBox.preset('proxy');
+// };
 $('proxy-button-ok').onclick = function () {
 	var proxy = $('select-proxy').value;
 	if (getProxy() === proxy) {
