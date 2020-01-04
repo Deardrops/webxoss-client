@@ -1104,7 +1104,7 @@ function checkDomain () {
 	if (hostname.match(/^(.*\.)?webxoss\.com$/)) return;
 	msgBox.preset('warn');
 }
-checkDomain();
+// checkDomain();
 
 // new deck editor
 if (/iPhone|Android/i.test(navigator.userAgent)) {
